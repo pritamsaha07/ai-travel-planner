@@ -12,7 +12,9 @@ export default function RootLayout() {
   const [tripData,setTripData]=useState([]);
   return (
     <CreateTripContext.Provider value={{tripData,setTripData}}>
-    <Stack>
+    <Stack screenOptions={{
+      headerShown:false
+    }}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen
         name="auth/sign-in/index"
@@ -31,6 +33,20 @@ export default function RootLayout() {
         name="create-trip/select-traveler"
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="create-trip/select-dates"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="create-trip/select-budget"
+        options={{ headerShown: false }}
+      />
+      
+      <Stack.Screen
+        name="create-trip/review-trip"
+        options={{ headerShown: false }}
+      />
+
     </Stack>
     </CreateTripContext.Provider>
   );

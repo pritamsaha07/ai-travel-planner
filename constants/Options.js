@@ -2,6 +2,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 export const SelectTravelesList = [
   {
     id: 1,
@@ -30,5 +31,26 @@ export const SelectTravelesList = [
     desc: "A bunch of thrill-seekes",
     icon: <FontAwesome6 name="sailboat" size={24} color="black" />,
     people: "5 to 10 people",
+  },
+];
+
+export const SelectBudgetOptions = [
+  {
+    id: 1,
+    title: "Cheap",
+    desc: "Stay conscious of costs",
+    icon: <FontAwesome name="money" size={24} color="black" />,
+  },
+  {
+    id: 2,
+    title: "Moderate",
+    desc: "Keep cost on the average side",
+    icon: <FontAwesome6 name="money-bill-wheat" size={24} color="black" />,
+  },
+  {
+    id: 3,
+    title: "Luxury",
+    desc: "Don't woory about cost",
+    icon: <FontAwesome6 name="money-bill-trend-up" size={24} color="black" />,
   },
 ];

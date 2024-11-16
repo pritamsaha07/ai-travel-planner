@@ -11,9 +11,7 @@ export default function SearchPlace() {
   const [searchValue, setSearchValue] = useState('');
   const router = useRouter();
 
-  useEffect(() => {
-    console.log(tripData);
-  }, [tripData]);
+  
 
   useEffect(() => {
     navigation.setOptions({
