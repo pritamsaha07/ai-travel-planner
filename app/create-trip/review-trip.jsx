@@ -92,7 +92,7 @@ export default function ReviewTrip() {
             </View>
             <TouchableOpacity style={{
         padding:15, backgroundColor:"#000", borderRadius:16,marginTop:30
-      }} >
+      }} onPress={()=>router.push("create-trip/generate-trip")}>
         <Text style={{textAlign:"center", color:"#fff",fontFamily:"outfit"}}>Build My Trip</Text>
       </TouchableOpacity>
         </View>

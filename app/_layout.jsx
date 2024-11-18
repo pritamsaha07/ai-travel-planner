@@ -46,6 +46,14 @@ export default function RootLayout() {
         name="create-trip/review-trip"
         options={{ headerShown: false }}
       />
+       <Stack.Screen
+        name="create-trip/generate-trip"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="trip-details/TripDetails"
+        options={{ headerShown: false }}
+      />
 
     </Stack>
     </CreateTripContext.Provider>

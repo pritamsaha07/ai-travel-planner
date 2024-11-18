@@ -54,3 +54,6 @@ export const SelectBudgetOptions = [
     icon: <FontAwesome6 name="money-bill-trend-up" size={24} color="black" />,
   },
 ];
+
+export const AI_PROMPT =
+  "Generate Travel Plan for {location}, for {totalDays} Days and {totalNights} Nights for {traveler} with a {budget} budget with a destination Image url, Flight deatils, Flight Price with a Booking urls, Hotels options list with HotelName, Hotel address, Hotel Image url, rating and Places to visit nearby iwith place Name, place details, Place Image Url, ticket pricing, Time to travel each of the loctaion with each day plan with best time to visit in JSON format. ";
