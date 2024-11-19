@@ -1,16 +1,54 @@
-import { View, Text, ScrollView, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { React } from 'react';
+import { View, Text, ScrollView, Image, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { React, useState, useEffect } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Linking } from 'react-native';
+
+
+const UNSPLASH_ACCESS_KEY = 'F0Q3Vk1weskGphZDwqp26moxfLbEqZTh7zTjMlmlD_Y';
 
 export default function TripDetails() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const [destinationImage, setDestinationImage] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const getTruncatedName = (name) => {
+    if (!name) return '';
+    return name.slice(0, 10);
+  };
   const trip = typeof params.trip === 'string' 
     ? JSON.parse(params.trip) 
     : params.trip;
   
   const { tripPlan } = trip;
+
+  useEffect(() => {
+    const fetchDestinationImage = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `https://api.unsplash.com/search/photos?query=${encodeURIComponent(getTruncatedName(tripPlan.tripName))}&client_id=${UNSPLASH_ACCESS_KEY}&orientation=landscape&per_page=1`
+        );
+        const data = await response.json();
+        
+        if (data.results && data.results.length > 0) {
+          setDestinationImage(data.results[0].urls.regular);
+        } else {
+          
+          setDestinationImage('https://images.unsplash.com/photo-1469474968028-56623f02e42e');
+        }
+      } catch (error) {
+        console.error('Error fetching image:', error);
+        setDestinationImage('https://images.unsplash.com/photo-1469474968028-56623f02e42e');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (tripPlan.tripName) {
+      fetchDestinationImage();
+    }
+  }, [tripPlan.tripName]);
 
   const renderFlightDetails = () => (
     <View style={styles.section}>
@@ -22,17 +60,14 @@ export default function TripDetails() {
         </View>
         <Text style={styles.flightSubText}>Flight: {tripPlan.flightDetails.flightNumber}</Text>
         <View style={styles.divider} />
-        <View style={styles.timeRow}>
-          <View>
-            <Text style={styles.timeLabel}>Departure</Text>
-            <Text style={styles.timeText} >{tripPlan.flightDetails.departure}</Text>
-          </View>
-          <View>
-            <Text style={styles.timeLabel}>Arrival</Text>
-            <Text style={styles.timeText}>{tripPlan.flightDetails.arrival}</Text>
-          </View>
-        </View>
         <Text style={styles.priceText}>Price: {tripPlan.flightDetails.price}</Text>
+
+        <TouchableOpacity 
+          style={styles.bookButton}
+          onPress={() => Linking.openURL(tripPlan.flightDetails.bookingUrl)}
+        >
+          <Text style={styles.bookButtonText}>Book Now</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -44,10 +79,12 @@ export default function TripDetails() {
         <View key={index} style={styles.card}>
           <Text style={styles.hotelName}>{hotel.hotelName}</Text>
           <Text style={styles.hotelAddress}>{hotel.hotelAddress}</Text>
+          <Text style={styles.priceText}>{hotel.rating}</Text>
         </View>
       ))}
     </View>
   );
+
   const renderDayPlan = () => (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Day-wise Itinerary</Text>
@@ -58,6 +95,10 @@ export default function TripDetails() {
             <View key={idx} style={styles.activityContainer}>
               <Text style={styles.activityText}>{location.name}</Text>
               <Text style={styles.activityTime}>{location.placeDetails}</Text>
+              <Text style={styles.activityTime}>
+                <Text style={styles.boldText}>Ticket Pricing: </Text>
+                {location.ticketPricing}
+              </Text>
             </View>
           ))}
         </View>
@@ -65,10 +106,9 @@ export default function TripDetails() {
     </View>
   );
 
- 
   if (!trip || !tripPlan) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <View style={[styles.container, styles.centerContainer]}>
         <Text>Loading trip details...</Text>
       </View>
     );
@@ -84,10 +124,18 @@ export default function TripDetails() {
       </View>
       
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Image
-          source={{ uri: tripPlan.destinationImageUrl }}
-          style={styles.destinationImage}
-        />
+        <View style={styles.imageContainer}>
+          {loading ? (
+            <View style={[styles.destinationImage, styles.centerContainer]}>
+              <ActivityIndicator size="large" color="#000" />
+            </View>
+          ) : (
+            <Image
+              source={{ uri: destinationImage }}
+              style={styles.destinationImage}
+            />
+          )}
+        </View>
         
         <View style={styles.infoContainer}>
           <View style={styles.infoRow}>
@@ -108,12 +156,14 @@ export default function TripDetails() {
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    
+  },
+  centerContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',
@@ -126,6 +176,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'outfit-bold',
     marginLeft: 15,
+  },
+  imageContainer: {
+    width: '100%',
+    height: 200,
+    backgroundColor: '#f0f0f0',
   },
   destinationImage: {
     width: '100%',
@@ -164,29 +219,29 @@ const styles = StyleSheet.create({
   flightSubText: {
     color: '#666',
     marginBottom: 10,
+    fontFamily: "outfit"
   },
   divider: {
     height: 1,
     backgroundColor: '#eee',
     marginVertical: 10,
   },
-  timeRow: {
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  timeLabel: {
-    color: '#666',
-    marginBottom: 5,
-  },
-  timeText: {
-    fontSize: 16,
-    fontFamily: 'outfit-medium',
-  },
   priceText: {
     fontSize: 16,
     color: '#2E8B57',
     fontFamily: 'outfit-medium',
+  },
+  bookButton: {
+    padding: 8,
+    borderRadius: 16,
+    backgroundColor: "#000",
+    marginTop: 10,
+  },
+  bookButtonText: {
+    color: "#fff",
+    textAlign: "center",
+    fontFamily: "outfit",
+    fontSize: 16,
   },
   hotelName: {
     fontSize: 18,
@@ -196,23 +251,7 @@ const styles = StyleSheet.create({
   hotelAddress: {
     color: '#666',
     marginBottom: 5,
-  },
-  hotelPrice: {
-    color: '#2E8B57',
-    fontFamily: 'outfit-medium',
-  },
-  amenitiesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 10,
-  },
-  amenityTag: {
-    backgroundColor: '#f0f0f0',
-    padding: 5,
-    borderRadius: 5,
-    marginRight: 5,
-    marginBottom: 5,
-    fontSize: 12,
+    fontFamily: "outfit"
   },
   dayTitle: {
     fontSize: 18,
@@ -225,9 +264,14 @@ const styles = StyleSheet.create({
   activityTime: {
     color: '#666',
     marginBottom: 2,
+    fontFamily: "outfit"
   },
   activityText: {
     fontSize: 16,
+    fontFamily: "outfit"
+  },
+  boldText: {
+    fontFamily: 'outfit-bold',
   },
   infoContainer: {
     padding: 15,
@@ -243,5 +287,6 @@ const styles = StyleSheet.create({
   },
   infoText: {
     color: '#666',
+    fontFamily: "outfit"
   },
 });

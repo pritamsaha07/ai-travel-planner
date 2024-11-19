@@ -81,6 +81,8 @@ export default function SignIn() {
           style={styles.input}
           placeholder="Enter Password"
           onChangeText={(value) => setPassword(value)}
+          secureTextEntry={true}
+          autoCapitalize="none"
         ></TextInput>
       </View>
       <View style={{ alignItems: "center" }}>
