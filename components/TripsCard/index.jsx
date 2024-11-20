@@ -7,13 +7,44 @@ import { db } from '../FirebaseConfig';
 const UNSPLASH_ACCESS_KEY = 'F0Q3Vk1weskGphZDwqp26moxfLbEqZTh7zTjMlmlD_Y';
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1469474968028-56623f02e42e';
 
-const TripCard = ({ trip, onDelete }) => {
+const TripCard = ({ trip, onDelete, tripId }) => {
   const [destinationImage, setDestinationImage] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
  
   const getTruncatedName = (name) => {
     if (!name) return '';
     return name.slice(0, 10);
+  };
+
+  const handleDelete = async () => {
+    Alert.alert(
+      "Delete Trip",
+      "Are you sure you want to delete this trip?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setIsDeleting(true);
+              const tripRef = doc(db, 'UserTrips', tripId);
+              await deleteDoc(tripRef);
+              onDelete(tripId);
+            } catch (error) {
+              console.error('Error deleting trip:', error);
+              Alert.alert('Error', 'Failed to delete trip. Please try again.');
+            } finally {
+              setIsDeleting(false);
+            }
+          }
+        }
+      ]
+    );
   };
 
   useEffect(() => {
@@ -68,34 +99,6 @@ const TripCard = ({ trip, onDelete }) => {
     });
   };
 
-  // const handleDelete = async () => {
-  //   Alert.alert(
-  //     "Delete Trip",
-  //     "Are you sure you want to delete this trip?",
-  //     [
-  //       {
-  //         text: "Cancel",
-  //         style: "cancel"
-  //       },
-  //       {
-  //         text: "Delete",
-  //         style: "destructive",
-  //         onPress: async () => {
-  //           try {
-  //             await deleteDoc(doc(db, "trips", trip.userId));
-  //             if (onDelete) {
-  //               onDelete(trip.userId);
-  //             }
-  //           } catch (error) {
-  //             console.error("Error deleting trip:", error);
-  //             Alert.alert("Error", "Failed to delete trip. Please try again.");
-  //           }
-  //         }
-  //       }
-  //     ]
-  //   );
-  // };
-
   return (
     <View style={styles.card}>
       <View style={styles.imageContainer}>
@@ -116,10 +119,15 @@ const TripCard = ({ trip, onDelete }) => {
         <View style={styles.headerRow}>
           <Text style={styles.tripName}>{trip?.tripPlan?.tripName}</Text>
           <TouchableOpacity 
-            // onPress={handleDelete}
+            onPress={handleDelete}
             style={styles.deleteButton}
+            disabled={isDeleting}
           >
-            <Ionicons name="trash-outline" size={24} color="#FF4444" />
+            {isDeleting ? (
+              <ActivityIndicator size="small" color="#FF4444" />
+            ) : (
+              <Ionicons name="trash-outline" size={24} color="#FF4444" />
+            )}
           </TouchableOpacity>
         </View>
         
@@ -155,7 +163,6 @@ const TripCard = ({ trip, onDelete }) => {
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#fff',

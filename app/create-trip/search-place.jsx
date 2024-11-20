@@ -4,6 +4,7 @@ import { useNavigation } from 'expo-router';
 import { CreateTripContext } from '../../context/CreateTripContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import selectTraveler from '../create-trip/select-traveler';
 export default function SearchPlace() {
   const navigation = useNavigation();
@@ -17,14 +18,14 @@ export default function SearchPlace() {
     navigation.setOptions({
       headerShown: true,
       headerTransparent: true,
-      headerTitle: 'Search',
+      headerTitle: '',
     });
   }, []);
 
   const handleSearch = (value) => {
     setSearchValue(value);
     setTripData( ({
-    
+     
       locationInfo: {
         name: value
       }
@@ -50,15 +51,10 @@ export default function SearchPlace() {
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
-        <Ionicons
-          name="search-outline"
-          size={20}
-          color="#666"
-          style={styles.searchIcon}
-        />
+      <MaterialCommunityIcons name="typewriter" size={20} color="black" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search location..."
+          placeholder="Where to next? Type your exact destination below! ✈️🌍"
           placeholderTextColor="#666"
           value={searchValue}
           onChangeText={handleSearch}
@@ -102,7 +98,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 11,
     color: '#333',
     padding: 0,
   },

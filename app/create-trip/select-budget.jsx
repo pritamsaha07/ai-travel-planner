@@ -26,7 +26,7 @@ export default function SelectBudget() {
       }
 
       useEffect(() => {
-        console.log(tripData);
+        // console.log(tripData);
       }, [tripData]);
   return (
     <View style={{

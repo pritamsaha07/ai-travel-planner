@@ -29,8 +29,9 @@
         {
           "image": "./assets/images/airplane-12211.gif",
           "imageWidth": 200,
+          "imageHeight": 100,
           "resizeMode": "contain",
-          "backgroundColor": "#cdcfd1"
+          "backgroundColor": "#000"
         }
       ]
     ],

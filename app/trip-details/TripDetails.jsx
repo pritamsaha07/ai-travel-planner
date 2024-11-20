@@ -5,23 +5,25 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Linking } from 'react-native';
 
 
-const UNSPLASH_ACCESS_KEY = 'F0Q3Vk1weskGphZDwqp26moxfLbEqZTh7zTjMlmlD_Y';
-
 export default function TripDetails() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const [destinationImage, setDestinationImage] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [dayPlanImages, setDayPlanImages] = useState({});
+  const UNSPLASH_ACCESS_KEY = 'F0Q3Vk1weskGphZDwqp26moxfLbEqZTh7zTjMlmlD_Y';
+
   const getTruncatedName = (name) => {
     if (!name) return '';
     return name.slice(0, 10);
   };
+
   const trip = typeof params.trip === 'string' 
     ? JSON.parse(params.trip) 
     : params.trip;
-  
   const { tripPlan } = trip;
 
+ 
   useEffect(() => {
     const fetchDestinationImage = async () => {
       setLoading(true);
@@ -30,13 +32,10 @@ export default function TripDetails() {
           `https://api.unsplash.com/search/photos?query=${encodeURIComponent(getTruncatedName(tripPlan.tripName))}&client_id=${UNSPLASH_ACCESS_KEY}&orientation=landscape&per_page=1`
         );
         const data = await response.json();
-        
-        if (data.results && data.results.length > 0) {
-          setDestinationImage(data.results[0].urls.regular);
-        } else {
-          
-          setDestinationImage('https://images.unsplash.com/photo-1469474968028-56623f02e42e');
-        }
+        setDestinationImage(
+          data.results?.[0]?.urls?.regular ||
+          'https://images.unsplash.com/photo-1469474968028-56623f02e42e'
+        );
       } catch (error) {
         console.error('Error fetching image:', error);
         setDestinationImage('https://images.unsplash.com/photo-1469474968028-56623f02e42e');
@@ -49,6 +48,41 @@ export default function TripDetails() {
       fetchDestinationImage();
     }
   }, [tripPlan.tripName]);
+
+  
+  useEffect(() => {
+    const fetchLocationImage = async (locationName) => {
+      try {
+        const response = await fetch(
+          `https://api.unsplash.com/search/photos?query=${encodeURIComponent(locationName)}&client_id=${UNSPLASH_ACCESS_KEY}&orientation=landscape&per_page=1`
+        );
+        const data = await response.json();
+        return (
+          data.results?.[0]?.urls?.regular ||
+          'https://images.unsplash.com/photo-1469474968028-56623f02e42e'
+        );
+      } catch (error) {
+        console.error('Error fetching image for location:', error);
+        return 'https://images.unsplash.com/photo-1469474968028-56623f02e42e';
+      }
+    };
+
+    const fetchAllImages = async () => {
+      const images = {};
+      for (const dayItem of tripPlan.days) {
+        for (const location of dayItem.locations) {
+          if (!images[location.name]) {
+            images[location.name] = await fetchLocationImage(location.name);
+          }
+        }
+      }
+      setDayPlanImages(images);
+    };
+
+    if (tripPlan?.days) {
+      fetchAllImages();
+    }
+  }, [tripPlan?.days]);
 
   const renderFlightDetails = () => (
     <View style={styles.section}>
@@ -88,11 +122,17 @@ export default function TripDetails() {
   const renderDayPlan = () => (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Day-wise Itinerary</Text>
-      {tripPlan.days.map((dayItem, index) => (
-        <View key={index} style={styles.card}>
+      {tripPlan.days.map((dayItem, dayIndex) => (
+        <View key={dayIndex} style={styles.card}>
           <Text style={styles.dayTitle}>Day {dayItem.day}</Text>
-          {dayItem.locations.map((location, idx) => (
-            <View key={idx} style={styles.activityContainer}>
+          {dayItem.locations.map((location, locIndex) => (
+            <View key={locIndex} style={styles.activityContainer}>
+              <Image
+                source={{
+                  uri: dayPlanImages[location.name] || 'https://images.unsplash.com/photo-1469474968028-56623f02e42e',
+                }}
+                style={styles.locationImage}
+              />
               <Text style={styles.activityText}>{location.name}</Text>
               <Text style={styles.activityTime}>{location.placeDetails}</Text>
               <Text style={styles.activityTime}>
@@ -148,7 +188,6 @@ export default function TripDetails() {
           </View>
         </View>
 
-        {renderFlightDetails()}
         {renderHotels()}
         {renderDayPlan()}
       </ScrollView>
@@ -288,5 +327,12 @@ const styles = StyleSheet.create({
   infoText: {
     color: '#666',
     fontFamily: "outfit"
+  },
+  locationImage: {
+    width: '100%',
+    height: 150,
+    borderRadius: 12,
+    marginBottom: 10,
+    resizeMode: 'cover',
   },
 });

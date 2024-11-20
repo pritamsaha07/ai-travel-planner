@@ -1,5 +1,5 @@
-import { View, Text, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native'
-import { React, useEffect, useState } from 'react'
+import { View, Text, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import { React, useEffect, useState } from 'react';
 import TripCard from '../../components/TripsCard';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import StartNewTripCard from '../../components/MyTrips/StartNewTripCard';
@@ -12,23 +12,36 @@ export default function MyTrip() {
   const router = useRouter();
   const [userTrips, setUserTrips] = useState([]);
   const user = auth.currentUser;
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     GetMyTrips();
-  }, [user])
+  }, [user]);
 
   const GetMyTrips = async () => {
     setLoading(true);
-    setUserTrips([])
-    const q = query(collection(db, 'UserTrips'), where('userEmail', '==', user.email));
-    const querySnapshot = await getDocs(q);
-    querySnapshot.forEach((doc) => {
-      console.log(doc.id, " => ", doc.data());
-      setUserTrips(prev => [...prev, doc.data()])
-    });
-    setLoading(false);
-  }
+    setUserTrips([]);
+    try {
+      const q = query(collection(db, 'UserTrips'), where('userEmail', '==', user.email));
+      const querySnapshot = await getDocs(q);
+      const trips = [];
+      querySnapshot.forEach((doc) => {
+        trips.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      setUserTrips(trips);
+    } catch (error) {
+      console.error("Error fetching trips:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = (tripId) => {
+    setUserTrips(prev => prev.filter(trip => trip.id !== tripId));
+  };
 
   const handleLogout = async () => {
     try {
@@ -61,7 +74,6 @@ export default function MyTrip() {
           }}>{user?.email}</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 15 }}>
-         
           <TouchableOpacity onPress={() => router.push('create-trip/search-place')}>
             <Ionicons name="add-circle-sharp" size={50} color="black" />
           </TouchableOpacity>
@@ -82,24 +94,27 @@ export default function MyTrip() {
       </View>
 
       {loading && <ActivityIndicator size={'large'} color={"#000"} />}
-      
-      {userTrips?.length == 0 ?
-        <StartNewTripCard /> : null}
+
+      {userTrips?.length === 0 && !loading ? <StartNewTripCard /> : null}
 
       {userTrips?.length > 0 && (
         <ScrollView showsVerticalScrollIndicator={false}>
-          {userTrips.map((trip, index) => (
+          {userTrips.map((trip) => (
             <TouchableOpacity
-              key={index}
+              key={trip.id}
               onPress={() => router.push({
                 pathname: 'trip-details/TripDetails',
                 params: { trip: JSON.stringify(trip) }
               })}>
-              <TripCard trip={trip} />
+              <TripCard 
+                trip={trip} 
+                tripId={trip.id}
+                onDelete={handleDelete}
+              />
             </TouchableOpacity>
           ))}
         </ScrollView>
       )}
     </View>
-  )
+  );
 }

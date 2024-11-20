@@ -31,9 +31,9 @@ export default function GenerateTrip() {
         .replace('{traveler}', tripData.traveler.title)
         .replace('{budget}', tripData.budget);
 
-      console.log(FINAL_PROMPT);
+      // console.log(FINAL_PROMPT);
       const result = await chatSession.sendMessage(FINAL_PROMPT);
-      console.log(result.response.text())
+      // console.log(result.response.text())
       const tripResponse = JSON.parse(result.response.text());
       
       const docId = Date.now().toString();
@@ -52,6 +52,7 @@ export default function GenerateTrip() {
       
       setLoading(false);
       router.push("(tabs)/MyTrip");
+      
     } catch (error) {
       console.error("Error generating trip:", error);
       setLoading(false);
